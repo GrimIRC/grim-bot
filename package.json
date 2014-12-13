@@ -1,0 +1,8 @@
+{
+  "name": "grim-bot",
+  "repository": "https://github.com/GrimIRC/grim-bot",
+  "dependencies": {
+    "twitter": "~0.1.19"
+  }
+}
+

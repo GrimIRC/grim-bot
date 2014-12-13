@@ -11,8 +11,12 @@ Util.inherits(GrimBot, Bot);
 
 GrimBot.prototype.init = function() {
 	Bot.prototype.init.call(this);
-	
-	this.register_command("ping", this.ping);
+
+    // this.register_command("ping", this.ping);
+
+    // pull in sub modules
+    //require('./src/smc')(this);
+
 	this.on('command_not_found', this.unrecognized);
 };
 

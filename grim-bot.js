@@ -25,16 +25,23 @@ GrimBot.prototype.unrecognized = function(cx, text) {
 	cx.channel.send_reply(cx.sender, "There is no command: "+text);
 };
 
+var defaultName = "grim-" + process.env.USER;
+
 var profile = [{
 	host: "irc.freenode.net",
 	port: 6667,
-	nick: process.env.BOT_NICK,
-	password: process.env.BOT_PASSWORD,
-	user: process.env.BOT_USER || process.env.BOT_NICK,
+	nick: process.env.BOT_NICK || defaultName,
+	password: process.env.BOT_PASSWORD || "",
+	user: process.env.BOT_USER || process.env.BOT_NICK || defaultName,
 	real: process.env.BOT_REAL || process.env.BOT_NICK || "Some Bot",
 	channels: [
-        process.env.NODE_ENV === "development" ? "##grim" : "##grim-" + process.env.USER
+        process.env.NODE_ENV === "production" ? "##grim" : "##" + defaultName
     ]
 }];
+
+console.log("Starting bot with options:");
+Object.keys(profile[0]).forEach(function(key){
+    console.log(key + ":" + "         ".slice(key.length) + profile[0][key]);
+});
 
 (new GrimBot(profile)).init();

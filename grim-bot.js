@@ -28,11 +28,13 @@ GrimBot.prototype.unrecognized = function(cx, text) {
 var profile = [{
 	host: "irc.freenode.net",
 	port: 6667,
-	nick: "mybot",
-	password: "password_to_authenticate",
-	user: "username",
-	real: "Real Name",
-	channels: ["#channels", "#to", "#join"]
+	nick: process.env.BOT_NICK,
+	password: process.env.BOT_PASSWORD,
+	user: process.env.BOT_USER || process.env.BOT_NICK,
+	real: process.env.BOT_REAL || process.env.BOT_NICK || "Some Bot",
+	channels: [
+        process.env.NODE_ENV === "development" ? "##grim" : "##grim-" + process.env.USER
+    ]
 }];
 
 (new GrimBot(profile)).init();

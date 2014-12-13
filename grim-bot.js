@@ -1,3 +1,4 @@
+require('es6-shim');
 var Util = require("util");
 var Bot = require("./lib/irc");
 
@@ -15,7 +16,7 @@ GrimBot.prototype.init = function() {
     // this.register_command("ping", this.ping);
 
     // pull in sub modules
-    //require('./src/smc')(this);
+    require('./src/smc')(this);
 
 	this.on('command_not_found', this.unrecognized);
 };

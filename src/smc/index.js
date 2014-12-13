@@ -9,9 +9,6 @@ module.exports = function addSmcFeatures(bot, db){
     var currentSMC = null;
 
     bot.register_command("cancel", function(cx, text){
-        console.log(cx);
-        console.log(cx.sender.user);
-        console.log(cx.channel);
         if (currentSMC) {
             cx.channel.send_reply(cx.sender, "The " + currentSMC.opts.variant
               + " is now canceled.  !" + currentSMC.opts.variant + " to start another.");
@@ -19,6 +16,26 @@ module.exports = function addSmcFeatures(bot, db){
         }
         else {
             cx.channel.send_action("tries to find something to cancel");
+        }
+    });
+
+    bot.register_command("in", function(cx, text){
+        if (currentSMC) {
+            currentSMC.userIn(cx.sender);
+            cx.channel.send_reply(cx.sender, "lets's do this!");
+        }
+        else {
+            cx.channel.send_reply(cx.sender, "calm down, there isn't a smc going on right now");
+        }
+    });
+
+    bot.register_command("out", function(cx, text){
+        if (currentSMC) {
+            currentSMC.userOut(cx.sender);
+            cx.channel.send_reply(cx.sender, "you're a party pooper!");
+        }
+        else {
+            cx.channel.send_reply(cx.sender, "calm down, there isn't a smc going on right now");
         }
     });
 
@@ -85,6 +102,7 @@ module.exports = function addSmcFeatures(bot, db){
 
 var events = require('events');
 var util = require('util');
+var md5 = require('MD5');
 
 /**
  *
@@ -104,28 +122,68 @@ function SMC(opts, cx){
     var _timerIds = {};
 
     this.cancel = function(){
-        clearTimeout(_timerIds.start);
-        clearTimeout(_timerIds.end);
-        clearTimeout(_timerIds.warning);
+        Object.keys(_timerIds).forEach(function(type){
+            clearTimeout(_timerIds[type]);
+            delete  _timerIds[type];
+        });
+
         this.emit('cancel');
     };
 
+    var getUserString = function(){
+        return this.users.map(function(user){ return user.name }).join(", ");
+    }.bind(this);
+
     this.start = function(){
+        clearTimeout(_timerIds.start);
         _timerIds.start = setTimeout(function(){
-            if (this.users.length > 2) {
+            if (this.users.length >= 2) {
                 cx.channel.send("Go go go!");
+
+                var startTime = Date.now();
+                var durationMS = opts.duration*1000*60;
+
+                _timerIds.warning = setTimeout(function(){
+                    cx.channel.send("Hey! " + getUserString() + "!  Half way warning!");
+                }, durationMS / 2);
+
+                _timerIds.warning2 = setTimeout(function(){
+                    cx.channel.send("Hey! " + getUserString() + "!  1 minute!");
+                }, durationMS - 1000*60);
+
+                _timerIds.end = setTimeout(function(){
+                    cx.channel.send("Hey! " + getUserString() + "!  Check your PMs for the upload link!");
+                    this.sendUploadLinks();
+                }.bind(this), durationMS - 1000*60);
             }
             else {
                 cx.channel.send("Not enough people want to do it, try again later");
                 this.cancel();
             }
-        }.bind(this));
+        }.bind(this), 1000*60);
+    };
+
+    this.sendUploadLinks = function(){
+        this.users.forEach(function(user){
+            var key = crypto.randomBytes(8).toString(16);
+            // TODO: store key in mongo
+            var url = 'http://grimirc.org/uploads/' + opts.variant + '/' + md5(user.host) + '?key=' + key;
+        });
     };
 
     this.userIn = function(user){
         this.users.push(user);
         cx.channel.send_reply(user, "is ready to " + opts.variant + "!");
     };
+
+    this.userOut = function (user) {
+        var index = this.users.findIndex(function(u2){
+            return u2.host === user.host;
+        });
+        if (index !== -1) {
+            this.users.splice(index, 1);
+        }
+    }
 }
 
 util.inherits(SMC, events.EventEmitter);

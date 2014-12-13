@@ -2,6 +2,7 @@
   "name": "grim-bot",
   "repository": "https://github.com/GrimIRC/grim-bot",
   "dependencies": {
+    "MD5": "^1.2.1",
     "es6-shim": "^0.22.1",
     "twitter": "~0.1.19"
   }

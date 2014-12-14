@@ -43,9 +43,15 @@ module.exports = function addSmcFeatures(bot, db){
     });
 
     bot.register_command("tl", function(cx, text){
-        if (currentSMC) {
-            var seconds = (currentSMC.endTime - Date.now()) / 1000;
-            var display = seconds <= 120 ? Math.floor(seconds) + " seconds" : Math.floor(seconds/60) + " minutes";
+        if (currentSMC && currentSMC.endTime) {
+            var seconds = Math.round((currentSMC.endTime - Date.now()) / 1000);
+            var display;
+            if (seconds <= 120) {
+                display = seconds + " seconds"
+            }
+            else {
+                display = Math.floor(seconds/60) + " minutes and " + (seconds%60) + " seconds"
+            }
             cx.channel.send_reply(cx.sender, "there's " + display + " remaining!");
         }
         else {

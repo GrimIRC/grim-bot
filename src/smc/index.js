@@ -209,10 +209,13 @@ function SMC(opts, cx){
         };
         ChallengesCollection.insert(smcObject, function(err, challenge){
             this.users.forEach(function(user){
-                var key = crypto.randomBytes(8).toString('base64');
+                var key = crypto.randomBytes(9).toString('base64')
+                  // make it url safe
+                  .replace(/[+]/g, '-').replace(/[\/]/g, '_');
+
                 var UploadsCollection = opts.db.collection('uploads');
                 UploadsCollection.insert({challengeId: challengeId, key: key}, function(err, challenge){
-                    var url = 'http://grimirc.org/uploads/' + opts.variant + '/' + md5(user.host) + '?key=' + encodeURIComponent(key);
+                    var url = 'http://grimirc.org/uploads/' + opts.variant + '/' + md5(user.host) + '?key=' + key;
                     user.send('Upload at ' + url);
                 });
             }.bind(this));

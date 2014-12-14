@@ -19,6 +19,7 @@ module.exports = function addSmcFeatures(bot, db){
         }
     });
 
+
     bot.register_command("in", function(cx, text){
         if (currentSMC) {
             currentSMC.userIn(cx.sender);
@@ -38,6 +39,28 @@ module.exports = function addSmcFeatures(bot, db){
             cx.channel.send_reply(cx.sender, "calm down, there isn't a smc going on right now");
         }
     });
+
+    bot.register_command("tl", function(cx, text){
+        if (currentSMC) {
+            var seconds = Date.now() - currentSMC.endTime;
+            var display = seconds <= 120 ? Math.floor(seconds) + " seconds" : Math.floor(seconds/60) + " minutes";
+            cx.channel.send_reply(cx.sender, "there's " + display + " remaining!");
+        }
+        else {
+            cx.channel.send_reply(cx.sender, "calm down, there isn't a smc going on right now");
+        }
+    });
+
+    bot.register_command("whosin", function(cx, text){
+        if (currentSMC) {
+            cx.channel.send_reply(cx.sender, "there's " + display + " remaining!");
+        }
+        else {
+            cx.channel.send_reply(cx.sender, "calm down, there isn't a smc going on right now");
+        }
+    });
+    bot.register_command("who", "whosin");
+    bot.register_command("whoin", "whosin");
 
     bot.register_command("start", function(cx, text){
         if (currentSMC) {
@@ -103,6 +126,7 @@ module.exports = function addSmcFeatures(bot, db){
 var events = require('events');
 var util = require('util');
 var md5 = require('MD5');
+var crypto = require('crypto');
 
 /**
  *
@@ -130,7 +154,7 @@ function SMC(opts, cx){
         this.emit('cancel');
     };
 
-    var getUserString = function(){
+    var getUserString = this.getUserString = function(){
         return this.users.map(function(user){ return user.name }).join(", ");
     }.bind(this);
 
@@ -138,10 +162,12 @@ function SMC(opts, cx){
         clearTimeout(_timerIds.start);
         _timerIds.start = setTimeout(function(){
             if (this.users.length >= 2) {
-                cx.channel.send("Go go go!");
+                cx.channel.send(getUserString() + "!  Go go go!");
 
                 var startTime = Date.now();
+                this.startTime = startTime;
                 var durationMS = opts.duration*1000*60;
+                this.endTime = durationMS + startTime;
 
                 _timerIds.warning = setTimeout(function(){
                     cx.channel.send("Hey! " + getUserString() + "!  Half way warning!");

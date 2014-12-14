@@ -5,7 +5,7 @@ var Bot = require("./lib/irc");
 var GrimBot = function(profile) {
 	Bot.call(this, profile);
 	this.set_log_level(this.LOG_ALL);
-	this.set_trigger("!"); // Exclamation
+	this.set_trigger("~"); // Exclamation
 };
 
 Util.inherits(GrimBot, Bot);

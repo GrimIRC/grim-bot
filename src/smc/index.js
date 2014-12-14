@@ -69,6 +69,7 @@ module.exports = function addSmcFeatures(bot, db){
     });
     bot.register_command("who", "whosin");
     bot.register_command("whoin", "whosin");
+    bot.register_command("whoisin", "whosin");
 
     bot.register_command("start", function(cx, text){
         if (currentSMC) {

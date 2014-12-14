@@ -1,24 +1,49 @@
 require('es6-shim');
 var Util = require("util");
 var Bot = require("./lib/irc");
+var MongoClient = require('mongodb').MongoClient;
 
 var GrimBot = function(profile) {
 	Bot.call(this, profile);
 	this.set_log_level(this.LOG_ALL);
-	this.set_trigger("~"); // Exclamation
+	this.set_trigger("!"); // Exclamation
 };
 
 Util.inherits(GrimBot, Bot);
+
+function requireUncached(module){
+    delete require.cache[require.resolve(module)]
+    return require(module)
+}
 
 GrimBot.prototype.init = function() {
 	Bot.prototype.init.call(this);
 
     // this.register_command("ping", this.ping);
 
-    // pull in sub modules
-    require('./src/smc')(this);
+    var registerCommands = function(db){
+        this.clearCommands();
+        var registerSMC = requireUncached('./src/smc');
+        registerSMC(this, db);
 
-	this.on('command_not_found', this.unrecognized);
+        this.register_command("reload", function(ctx){
+            process.nextTick(function(){
+                registerCommands(db);
+            });
+        });
+    }.bind(this);
+
+    this.on('command_not_found', this.unrecognized);
+
+    // pull in sub modules
+
+    MongoClient.connect('mongodb://127.0.0.1/grimirc', function(err, db){
+        if (err) {
+            console.error('Failed to connect to mongodb', err);
+            process.exit(17);
+        }
+        registerCommands(db);
+    }.bind(this));
 };
 
 

@@ -4,6 +4,8 @@ var Bot = require('../../lib/irc/index.js');
  * @param {Bot} bot
  * @param db
  */
+var __DEV__ = process.env.NODE_ENV !== "production";
+
 module.exports = function addSmcFeatures(bot, db){
     var state = {};
     var currentSMC = null;
@@ -42,7 +44,7 @@ module.exports = function addSmcFeatures(bot, db){
 
     bot.register_command("tl", function(cx, text){
         if (currentSMC) {
-            var seconds = Date.now() - currentSMC.endTime;
+            var seconds = (currentSMC.endTime - Date.now()) / 1000;
             var display = seconds <= 120 ? Math.floor(seconds) + " seconds" : Math.floor(seconds/60) + " minutes";
             cx.channel.send_reply(cx.sender, "there's " + display + " remaining!");
         }
@@ -77,7 +79,7 @@ module.exports = function addSmcFeatures(bot, db){
         bot.register_command(variant, function(cx, text){
             var parts = text.trim().split(" ");
             var smcSyntax = "!" + variant + " duration topic";
-            var options = {sender: cx.sender, variant: variant};
+            var options = {sender: cx.sender, variant: variant, db: db};
 
             // bail if there's currently a smc
             if (currentSMC) {
@@ -87,7 +89,9 @@ module.exports = function addSmcFeatures(bot, db){
             // duration
             if (parts.length > 0) {
                 var duration = Number(parts[0]);
-                if (duration && duration >= 5 && duration <= 90) {
+
+                var min = __DEV__ ? 0.1 : 5;
+                if (duration && duration >= min && duration <= 90) {
                     options.duration = duration;
                 }
                 else {
@@ -130,9 +134,10 @@ var crypto = require('crypto');
 
 /**
  *
- * @param {{duration,topic,variant,creator}} opts
+ * @param {{duration,topic,variant,creator,db}} opts
  * duration is time in MS from the start point
  * topic is an arbitrary topic string
+ * db is a mongodb client
  * variant is one of smc,sdc,smuc,ssc,scc
  * @constructor
  */
@@ -159,9 +164,11 @@ function SMC(opts, cx){
     }.bind(this);
 
     this.start = function(){
+        var waitTimeBeforeStart = __DEV__ ? 5000 : 1000*60;
+
         clearTimeout(_timerIds.start);
         _timerIds.start = setTimeout(function(){
-            if (this.users.length >= 2) {
+            if (this.users.length >= 2 || this.users.length >= 1 && __DEV__) {
                 cx.channel.send(getUserString() + "!  Go go go!");
 
                 var startTime = Date.now();
@@ -186,15 +193,30 @@ function SMC(opts, cx){
                 cx.channel.send("Not enough people want to do it, try again later");
                 this.cancel();
             }
-        }.bind(this), 1000*60);
+        }.bind(this), waitTimeBeforeStart);
     };
 
     this.sendUploadLinks = function(){
-        this.users.forEach(function(user){
-            var key = crypto.randomBytes(8).toString(16);
-            // TODO: store key in mongo
-            var url = 'http://grimirc.org/uploads/' + opts.variant + '/' + md5(user.host) + '?key=' + key;
-        });
+        var ChallengesCollection = opts.db.collection('challenges');
+        var challengeId = crypto.randomBytes(8).toString('base64')
+        var smcObject = {
+            topic: opts.topic,
+            duration: opts.duration,
+            variant: opts.variant,
+            creator: opts.creator && opts.creator.host,
+            finishedAt: new (require('mongodb').Timestamp),
+            challengeId: challengeId
+        };
+        ChallengesCollection.insert(smcObject, function(err, challenge){
+            this.users.forEach(function(user){
+                var key = crypto.randomBytes(8).toString('base64');
+                var UploadsCollection = opts.db.collection('uploads');
+                UploadsCollection.insert({challengeId: challengeId, key: key}, function(err, challenge){
+                    var url = 'http://grimirc.org/uploads/' + opts.variant + '/' + md5(user.host) + '?key=' + encodeURIComponent(key);
+                    user.send('Upload at ' + url);
+                });
+            }.bind(this));
+        }.bind(this));
     };
 
     this.userIn = function(user){

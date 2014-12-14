@@ -4,6 +4,7 @@
   "dependencies": {
     "MD5": "^1.2.1",
     "es6-shim": "^0.22.1",
+    "mongodb": "^1.4.23",
     "twitter": "~0.1.19"
   }
 }

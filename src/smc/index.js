@@ -193,7 +193,7 @@ function SMC(opts, cx){
                 _timerIds.end = setTimeout(function(){
                     cx.channel.send("Hey! " + getUserString() + "!  Check your PMs for the upload link!");
                     this.sendUploadLinks();
-                }.bind(this), durationMS - 1000*60);
+                }.bind(this), durationMS);
             }
             else {
                 cx.channel.send("Not enough people want to do it, try again later");

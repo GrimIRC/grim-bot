@@ -128,6 +128,9 @@ module.exports = function addSmcFeatures(bot, db){
             currentSMC.on('cancel', function(){
                 currentSMC = null;
             });
+            currentSMC.on('end', function(){
+                currentSMC = null;
+            });
             cx.channel.send_reply(cx.sender, "Say !in to join, and !start to go");
         });
     });
@@ -193,6 +196,7 @@ function SMC(opts, cx){
                 _timerIds.end = setTimeout(function(){
                     cx.channel.send("Hey! " + getUserString() + "!  Check your PMs for the upload link!");
                     this.sendUploadLinks();
+                    this.emit('end');
                 }.bind(this), durationMS);
             }
             else {

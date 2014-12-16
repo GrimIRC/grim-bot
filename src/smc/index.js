@@ -21,7 +21,6 @@ module.exports = function addSmcFeatures(bot, db){
         }
     });
 
-
     bot.register_command("in", function(cx, text){
         if (currentSMC) {
             currentSMC.userIn(cx.sender);

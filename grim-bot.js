@@ -26,6 +26,8 @@ GrimBot.prototype.init = function() {
         var registerSMC = requireUncached('./src/smc');
         registerSMC(this, db);
 
+        requireUncached('./src/misc/hug.js')(this);
+
         this.register_command("reload", function(ctx){
             process.nextTick(function(){
                 registerCommands(db);

@@ -23,6 +23,15 @@ module.exports = function addSmcFeatures(bot, db){
 
     bot.register_command("in", function(cx, text){
         if (currentSMC) {
+            var userAlreadyIn = currentSMC.users.some(function(user){
+                return cx.sender.name === user.name;
+            });
+
+            if (userAlreadyIn) {
+                cx.channel.send_reply(cx.sender, "you're already in, silly!");
+                return;
+            }
+
             currentSMC.userIn(cx.sender);
             cx.channel.send_reply(cx.sender, "lets's do this!");
         }

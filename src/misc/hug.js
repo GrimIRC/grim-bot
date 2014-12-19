@@ -29,13 +29,10 @@ module.exports = function(bot){
     // hug me, HUG ME, hugme, hugmee
     bot.register_listener(/\bhug *me+\b/gi, giveHug);
 
-    // !!!, !?!!, !!?!, !?!?!, !!!!!
-    bot.register_listener(/\b!+\?*!+\?*!+\b/gi, giveHug);
-
     // x_x, <_<, >_>, >_<, :/, :(, :[
-    bot.register_listener(/([x<>])_\1/gi, giveHug);
-    bot.register_listener(/>_</gi, giveHug);
-    bot.register_listener(/:[\/\(\[]/gi, giveHug);
+    bot.register_listener(/(\s|^)([x<>])_(\s|$)\1/gi, giveHug);
+    bot.register_listener(/(\s|^)>_<(\s|$)/gi, giveHug);
+    bot.register_listener(/(\s|^):[\/\(\[](\s|$)/gi, giveHug);
 
     // you get the idea :-)
     bot.register_listener(/\b(fuck|shit)/gi, giveHug);

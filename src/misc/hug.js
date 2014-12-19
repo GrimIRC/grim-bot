@@ -32,11 +32,10 @@ module.exports = function(bot){
     // !!!, !?!!, !!?!, !?!?!, !!!!!
     bot.register_listener(/\b!+\?*!+\?*!+\b/gi, giveHug);
 
-    // x_x, <_<, >_>, >_<
+    // x_x, <_<, >_>, >_<, :/, :(, :[
     bot.register_listener(/([x<>])_\1/gi, giveHug);
     bot.register_listener(/>_</gi, giveHug);
-
-
+    bot.register_listener(/:[\/\(\[]/gi, giveHug);
 
     // you get the idea :-)
     bot.register_listener(/\b(fuck|shit)/gi, giveHug);

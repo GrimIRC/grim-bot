@@ -1,5 +1,4 @@
 // Hugs people who need hugs
-// limit 1 hug per 30 minutes
 
 module.exports = function(bot){
     bot.register_command("hug", function(cx, text){

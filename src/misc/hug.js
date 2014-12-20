@@ -2,38 +2,9 @@
 // limit 1 hug per 30 minutes
 
 module.exports = function(bot){
-    // map of username : Boolean
-    var hugsGiven = {};
-
-
-    var giveHug = function(cx){
-        var target = cx.sender.name;
-
-        if (hugsGiven[target]) {
-            // you already got your hug!
-            return;
-        }
-
+    bot.register_command("hug", function(cx, text){
+        var userTo = text.trim();
+        var target = (userTo.length > 0) ? userTo : 'everyone';
         cx.channel.send_action('hugs ' + target);
-        hugsGiven[target] = true;
-
-        // clear it after 30 minutes
-        setTimeout(function(){
-            delete hugsGiven[target];
-        }, 1000*60*30);
-    };
-
-    // ugh, urgh, uggh, etc.
-    bot.register_listener(/\bu.?g.?h?\b/gi, giveHug);
-
-    // hug me, HUG ME, hugme, hugmee
-    bot.register_listener(/\bhug *me+\b/gi, giveHug);
-
-    // x_x, <_<, >_>, >_<, :/, :(, :[
-    bot.register_listener(/(\s|^)([x<>])_(\s|$)\1/gi, giveHug);
-    bot.register_listener(/(\s|^)>_<(\s|$)/gi, giveHug);
-    bot.register_listener(/(\s|^):[\/\(\[](\s|$)/gi, giveHug);
-
-    // you get the idea :-)
-    bot.register_listener(/\b(fuck|shit)/gi, giveHug);
+    });
 };
